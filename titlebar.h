@@ -1,6 +1,8 @@
 #pragma once
 
 #include <QWidget>
+#include <QLabel>
+#include <QPushbutton>
 
 enum ButtonType
 {
@@ -43,6 +45,32 @@ signals:
 	void signalButtonMaxClicked();												// 最大化按钮点击信号
 	void signalButtonCloseClicked();											// 关闭按钮点击信号
 	void signalButtonRestoreClicked();											// 还原按钮点击信号
+
+private slots:
+	void onButtonMinClicked();													// 最小化按钮点击槽函数
+	void onButtonMaxClicked();													// 最大化按钮点击槽函数
+	void onButtonCloseClicked();												// 关闭按钮点击槽函数
+	void onButtonRestoreClicked();												// 还原按钮点击槽函数
+
+private:
+	QLabel* m_pIcon;															// 标题栏图标		
+	QLabel* m_pTitleContent;													// 标题栏内容
+	QPushButton* m_pButtonMin;													// 最小化按钮
+	QPushButton* m_pButtonMax;													// 最大化按钮
+	QPushButton* m_pButtonClose;												// 关闭按钮
+	QPushButton* m_pButtonRestore;												// 还原按钮
+
+	//最大化还原按钮变量
+	QPoint m_restorePoint;														// 窗口最大化前,窗口的位置
+	QSize m_restoreSize;														// 窗口最大化前,窗口的大小
+
+	//移动窗口变量
+	bool m_isPressed;															// 鼠标是否按下
+	QPoint m_startMovePos;														// 鼠标开始移动的位置
+
+	QString m_titleContent;														// 标题栏内容
+	ButtonType m_buttonType;													// 标题栏按钮类型
+	
 
 };
 
