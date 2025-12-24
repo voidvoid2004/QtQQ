@@ -4,13 +4,19 @@
 #include <QPainter>
 #include <QStyleOption>
 #include <QMouseEvent>
-
+#include "CommonUtils.h"
+#include "notifymanager.h"
 
 BasicWindow::BasicWindow(QWidget *parent)
 	: QDialog(parent)
 {
+	m_colorBackGround = CommonUtils::getDefaultSkinColor();
 	setWindowFlags(Qt::FramelessWindowHint);						//无边框
 	setAttribute(Qt::WA_TranslucentBackground, true);				//透明效果
+	connect(NotifyManager::getInstance(),
+		SIGNAL(signalSkinChanged(const QColor&)),
+		this,
+		SLOT(onSignalSkinChange(const QColor&)));
 }
 
 BasicWindow::~BasicWindow()
@@ -20,6 +26,7 @@ void BasicWindow::loadStyleSheet(const QString& sheetName)
 {
 	m_styleName = sheetName;
 	QFile file(":/Resources/QSS/" + sheetName + ".css");
+	file.open(QFile::ReadOnly);
 	if (file.isOpen())
 	{
 		setStyleSheet("");
@@ -127,9 +134,9 @@ void BasicWindow::initTitleBar(ButtonType buttonType)
 	m_titleBar->move(0, 0);
 
 	connect(m_titleBar, SIGNAL(signalButtonMinClicked()), this, SLOT(onButtonMinClicked()));
-	connect(m_titleBar, SIGNAL(signalButtonRestoreClicked()), this, SLOT(onButtonMinClicked()));
-	connect(m_titleBar, SIGNAL(signalButtonMaxClicked()), this, SLOT(onButtonMinClicked()));
-	connect(m_titleBar, SIGNAL(signalButtonCloseClicked()), this, SLOT(onButtonMinClicked()));
+	connect(m_titleBar, SIGNAL(signalButtonRestoreClicked()), this, SLOT(onButtonRestoreClicked()));
+	connect(m_titleBar, SIGNAL(signalButtonMaxClicked()), this, SLOT(onButtonMaxClicked()));
+	connect(m_titleBar, SIGNAL(signalButtonCloseClicked()), this, SLOT(onButtonCloseClicked()));
 }
 
 void BasicWindow::setTitleBarTitle(const QString& title, const QString& icon)
@@ -196,19 +203,49 @@ void BasicWindow::onButtonRestoreClicked()
 	setGeometry(QRect(windowPos, windowSize));
 }
 
+//void BasicWindow::onButtonMaxClicked()
+//{
+//	// 先保存窗体之前的 位置 , 大小高度,宽度
+//	m_titleBar->saveRestoreInfo(pos(), QSize(width(), height()));
+//
+//	// desktopRect , 桌面矩形
+//	QRect desktopRect = QApplication::desktop()->availableGeometry();			// 获取桌面信息
+//
+//	// factRect , 实际矩形
+//	QRect factRect = QRect(desktopRect.x() - 3, desktopRect.y() - 3,
+//		desktopRect.width() + 6, desktopRect.height() + 6);
+//	 //设置矩形
+//	setGeometry(factRect);
+//}
+
 void BasicWindow::onButtonMaxClicked()
 {
-	// 先保存窗体之前的 位置 , 大小高度,宽度
-	//m_titleBar->saveRestoreInfo(pos(), QSize(width(), height()));
+	// 先保存窗体之前的位置、大小高度、宽度
+	m_titleBar->saveRestoreInfo(pos(), QSize(width(), height()));
 
-	//// desktopRect , 桌面矩形
-	//QRect desktopRect = QApplication::desktop()->availableGeometry();			// 获取桌面信息
+	// 获取屏幕信息（Qt6 的新API）
+	QScreen* screen = window()->screen();
+	if (!screen) {
+		screen = QGuiApplication::primaryScreen();  // 如果获取失败，使用主屏幕
+	}
 
-	//// factRect , 实际矩形
-	//QRect factRect = QRect(desktopRect.x() - 3, desktopRect.y() - 3,
-	//	desktopRect.width() + 6, desktopRect.height() + 6);
-	//// 设置矩形
-	//setGeometry(factRect);
+	if (screen) {
+		// 获取屏幕的可用几何区域（桌面矩形，排除任务栏）
+		QRect desktopRect = screen->availableGeometry();
+
+		// factRect，实际矩形
+		// 注意：原始逻辑是 x-3, y-3, 宽度+6, 高度+6
+		// 这会让窗口比可用区域大一点，并向上向左偏移一点
+		QRect factRect = QRect(desktopRect.x() - 3, desktopRect.y() - 3,
+			desktopRect.width() + 6, desktopRect.height() + 6);
+
+		// 设置矩形
+		setGeometry(factRect);
+	}
+	else {
+		// 如果无法获取屏幕信息，使用简单的最大化
+		showMaximized();
+	}
 }
 
 void BasicWindow::onButtonCloseClicked()

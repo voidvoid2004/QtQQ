@@ -7,6 +7,7 @@
 #include "basicwindow.h"
 
 
+
 #define BUTTON_WIDTH 27		// 按钮宽度
 #define BUTTON_HEIGHT 27	// 按钮高度
 #define TITLE_HEIGHT 27		// 标题栏高度
@@ -117,7 +118,7 @@ void TitleBar::mouseDoubleClickEvent(QMouseEvent* event)
 
 void TitleBar::mousePressEvent(QMouseEvent* event)
 {
-	if (m_buttonType = MIN_MAX_BUTTON)
+	if (m_buttonType == MIN_MAX_BUTTON)
 	{
 		if (m_pButtonMax->isVisible())
 		{
@@ -201,7 +202,7 @@ void TitleBar::initConnections()
 
 void TitleBar::loadStyleSheet(const QString& sheetName)
 {
-	QFile file(":Resources/QSS/" + sheetName + ".css");
+	QFile file(":/Resources/QSS/" + sheetName + ".css");
 	file.open(QFile::ReadOnly);
 	if (file.isOpen())
 	{
@@ -220,17 +221,17 @@ void TitleBar::onButtonMinClicked()
 
 void TitleBar::onButtonMaxClicked()
 {
-	m_pButtonRestore->setVisible(false);
-	m_pButtonMax->setVisible(true);
-	emit signalButtonRestoreClicked();
+	m_pButtonRestore->setVisible(true);
+	m_pButtonMax->setVisible(false);
+	emit signalButtonMaxClicked();
 }
 void TitleBar::onButtonCloseClicked()
 {
-	m_pButtonMax->setVisible(false);
-	m_pButtonRestore->setVisible(true);
-	emit signalButtonMaxClicked();
+	emit signalButtonCloseClicked();
 }
 void TitleBar::onButtonRestoreClicked()
 {
-	emit signalButtonCloseClicked();
+	m_pButtonRestore->setVisible(false);
+	m_pButtonMax->setVisible(true);
+	emit signalButtonRestoreClicked(); 
 }
